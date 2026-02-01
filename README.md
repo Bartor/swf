@@ -5,11 +5,15 @@ HTML-first, React-sque, two-paradigm simple and lightweight framework for web de
 ## Features
 
 - supports both **static HTML DOM generations** via provided building blocks and **internally-state-managed components with memoization**
+- state, memo and effects
 - React-like reconciliation for performance
 
 ## TODOs
 
 - support `key` prop
+- add memo variant for methods like `useCallback`
+- add contexts/providers
+- add reducers
 - update `style` per property
 - update test coverage
 
