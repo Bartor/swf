@@ -16,7 +16,7 @@ export const getPersist = (local: LocallyReferenableNodeBlock<ComponentNodeBlock
 
       if (newValue !== currentValue) {
         node.context.updatePersist(newValue, currentIdx);
-        node.root.updateTree(node);
+        node.root?.updateTree(node);
       }
     };
   };
@@ -28,7 +28,10 @@ export const getPersist = (local: LocallyReferenableNodeBlock<ComponentNodeBlock
     }
 
     const result: PersistResult<T> = [local.node.context.getPersist(), getUpdate()];
-    local.node.context.nextPersist();
+
+    if (local.node.context.initialized) {
+      local.node.context.nextPersist();
+    }
 
     return result;
   };
