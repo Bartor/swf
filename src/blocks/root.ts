@@ -1,4 +1,4 @@
-import { ScheduledEffectCall } from '../state/types';
+import { ScheduledEffectCall } from '../state/effect';
 import { BlockRenderer, ComponentNodeBlock, NodeRoot } from './types';
 
 export const root = (container: HTMLElement, ...children: BlockRenderer[]) => {

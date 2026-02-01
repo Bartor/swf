@@ -56,31 +56,59 @@ window.addEventListener('load', () => {
     'repeater',
   );
 
-  const counter = component(
-    ({ persist, memoize }) =>
-      (title, limit) => {
-        const [count, updateCount] = persist(1);
-        const add = memoize(() => () => updateCount((count) => count + 1), []);
-        const remove = memoize(() => () => updateCount((count) => count - 1), []);
+  const counter = component(({ persist, memoize, reduce }) => {
+    const initialState = { count: 1 };
+    const update = ({ action, payload }, state) => {
+      switch (action) {
+        case 'add':
+          return {
+            ...state,
+            count: (state.count += payload),
+          };
+        case 'remove':
+          return {
+            ...state,
+            count: (state.count -= payload),
+          };
+      }
+    };
 
-        return [
+    return (title, limit) => {
+      const [count, updateCount] = persist(1);
+      const [state, dispatch] = reduce(initialState, update);
+
+      const add = memoize(
+        () => () => {
+          updateCount((count) => count + 1);
+          dispatch({ action: 'add', payload: 1 });
+        },
+        [],
+      );
+      const remove = memoize(
+        () => () => {
+          updateCount((count) => count - 1);
+          dispatch({ action: 'remove', payload: 1 });
+        },
+        [],
+      );
+
+      return [
+        div(
+          {},
+          h3({}, title),
           div(
-            {},
-            h3({}, title),
-            div(
-              { style: 'display: flex; gap: 8px;' },
-              button({ onclick: remove }, '-'),
-              button({ onclick: add }, '+'),
-            ),
-            'Count: ',
-            span({ style: count > limit || count < 0 ? 'color: red' : '' }, count),
-            br(),
-            span({}, repeater(count, limit)),
+            { style: 'display: flex; gap: 8px;' },
+            button({ onclick: remove }, '-'),
+            button({ onclick: add }, '+'),
           ),
-        ];
-      },
-    'counter',
-  );
+          'Count: ',
+          span({ style: state.count > limit || state.count < 0 ? 'color: red' : '' }, count),
+          br(),
+          span({}, repeater(state.count, limit)),
+        ),
+      ];
+    };
+  }, 'counter');
 
   const description = p(
     {},
@@ -93,7 +121,7 @@ window.addEventListener('load', () => {
     '.',
   );
 
-  const clock = component(({ effect, persist, memoize }) => () => {
+  const clock = component(({ effect, persist }) => () => {
     const [stop, updateStop] = persist(false);
     const [seconds, updateSeconds] = persist(0);
     const [tempo, updateTempo] = persist(5);

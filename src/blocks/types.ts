@@ -1,4 +1,5 @@
-import { ExecutionContext, ScheduledEffectCall } from '../state/types';
+import { ExecutionContext } from '../state/context';
+import { ScheduledEffectCall } from '../state/effect';
 import { PickFunctions, PrepareProps } from '../utils/type-utils';
 
 // Blocks
@@ -12,7 +13,7 @@ export type Block<T extends HTMLElement = HTMLElement> = (
   props: PrepareProps<T>,
   ...children: Renderable[]
 ) => BlockRenderer<T>;
-export type ComponentBlock<TProps = any> = (props: TProps) => BlockRendererFn<TProps>;
+export type ComponentBlock = <TProps>(props: TProps) => BlockRendererFn<TProps>;
 export type TextBlock = (text: string) => BlockRendererFn<Text>;
 
 // Tree
@@ -136,7 +137,7 @@ export class TextNodeBlock extends GenericNodeBlock<Text> {
   }
 }
 
-export class LocallyReferenableNodeBlock<T extends GenericNodeBlock<any>> {
+export class LocallyReferencableNodeBlock<T extends GenericNodeBlock<any>> {
   constructor(private reference: T) {}
 
   get node() {

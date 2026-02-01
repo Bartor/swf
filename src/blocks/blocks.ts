@@ -7,11 +7,11 @@ import {
   TextNodeBlock,
   GenericParentNode,
   TextBlock,
-  LocallyReferenableNodeBlock,
+  LocallyReferencableNodeBlock,
 } from './types';
 
 export const textBlock: TextBlock = (text: string) => {
-  const local = new LocallyReferenableNodeBlock(new TextNodeBlock());
+  const local = new LocallyReferencableNodeBlock(new TextNodeBlock());
 
   const renderer: BlockRendererFn<Text> = (parent?: GenericParentNode, idx: number = -1) => {
     let hasToRender = false;
@@ -54,7 +54,7 @@ const makeBlock = <T extends HTMLElement = HTMLElement>(
 ): Block<T> => {
   return function block(props = {}, ...children) {
     // maintain references for handler even if `node` changes
-    const local = new LocallyReferenableNodeBlock<NodeBlock<T>>(new NodeBlock<T>(tagName));
+    const local = new LocallyReferencableNodeBlock<NodeBlock<T>>(new NodeBlock<T>(tagName));
 
     const getterProxyHandler = {
       get(_: unknown, prop: unknown) {

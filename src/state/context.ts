@@ -1,23 +1,9 @@
-import { ComponentNodeBlock } from '../blocks';
-
-export type PersistUpdatePayload<T = any> = T | ((previous: T) => T);
-export type PersistUpdateFn<T = any> = (newValue: PersistUpdatePayload<T>) => void;
-export type PersistResult<T> = [T, PersistUpdateFn<T>];
-export type PersistFn<T = any> = (initialValue?: T) => PersistResult<T>;
-export type PersistFnGetter<T = any> = (node: ComponentNodeBlock) => PersistFn<T>;
-
-export type MemoizeFactoryFn<T> = (...args: any[]) => T;
-export type MemoizeFn<T = any> = (makeMemo: MemoizeFactoryFn<T>, dependsOn: any[]) => T;
-export type MemoizeFnGetter<T = any> = (node: ComponentNodeBlock) => MemoizeFn<T>;
-
-export type EffectCleanup = () => void;
-export type EffectCallback = () => void | EffectCleanup;
-export type EffectFn = (callback: EffectCallback, dependsOn: any[]) => void;
-export type ScheduledEffectCall = () => void;
+import { PersistUpdateFn } from './persist';
 
 type Persist = [value: any, updatePersist: PersistUpdateFn];
 type Memoize<TValue = any, TDepends = any[]> = [value: TValue, dependsOnValues: TDepends];
 type Effect = [cleanup: () => void, dependsOnValues: any[]];
+
 export class ExecutionContext {
   private readonly persists: Persist[];
   private readonly memoized: Memoize[];

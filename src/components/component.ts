@@ -2,30 +2,34 @@ import {
   BlockRendererFn,
   ComponentNodeBlock,
   GenericParentNode,
-  LocallyReferenableNodeBlock,
+  LocallyReferencableNodeBlock,
 } from '../blocks';
-import { getEffect, getMemoize, getPersist } from '../state/state';
+import { getEffect } from '../state/effect';
+import { getMemoize } from '../state/memoize';
+import { getPersist } from '../state/persist';
+import { getReduce } from '../state/reduce';
 import { makeRenderable } from '../utils/rendering-utils';
 import { ComponentFactory, ComponentInjectedPropsFn } from './types';
 
 export const component: ComponentFactory = (() => {
   let componentId = 0;
 
-  return <TProps extends any[] = any[]>(
+  return <TProps extends any[]>(
     injectedPropsFn: ComponentInjectedPropsFn<TProps>,
     customName?: string,
   ) => {
     // create local reference for injected fns, establish name
     const name = customName ?? `__c${componentId++}`;
 
-    const local = new LocallyReferenableNodeBlock<ComponentNodeBlock<TProps>>(
+    const local = new LocallyReferencableNodeBlock<ComponentNodeBlock<TProps>>(
       new ComponentNodeBlock(name),
     );
 
     const persist = getPersist(local);
     const memoize = getMemoize(local);
     const effect = getEffect(local);
-    const componentFn = injectedPropsFn({ persist, memoize, effect });
+    const reduce = getReduce(local);
+    const componentFn = injectedPropsFn({ persist, memoize, effect, reduce });
 
     return function block(...props: TProps) {
       function renderer(parent?: GenericParentNode, idx: number = -1): null {
