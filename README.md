@@ -10,10 +10,11 @@ HTML-first, React-sque, two-paradigm simple and lightweight framework for web de
 
 ## TODOs
 
-- support `key` prop
-- add memo variant for methods like `useCallback`
+- add support for `key` prop
+- add memoize variant for methods similar to `useCallback`
 - add contexts/providers
 - add reducers
+- update types to allow for proper tyep inference
 - update `style` per property
 - update test coverage
 
