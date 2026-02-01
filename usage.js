@@ -1,18 +1,27 @@
-import { text, div, root, span } from 'swf';
+import { br, button, component, div, p, root } from 'swf';
 
 window.addEventListener('load', () => {
   const container = document.getElementById('container');
 
-  // we can interact with internal DOM methods freely if we want to
-  const interactiveSpan = span();
-  interactiveSpan.addEventListener('click', () => alert('Hello!'));
+  const counter = component(
+    ({ persist }) =>
+      () => {
+        const [count, updateCount] = persist(0);
+        const add = () => updateCount((count) => count + 1);
+        const remove = () => updateCount((count) => count - 1);
 
-  root(container)(
-    // element calls create a simple tree
-    div({ className: 'parent-class' })(
-      text('parent text ')(),
-      span({ style: 'background-color:red;' })(text('children text')()),
-      interactiveSpan(text(' click me!')()),
-    ),
+        return [
+          div(
+            {},
+            `Count: ${count}`,
+            br(),
+            button({ onclick: add }, '+'),
+            button({ onclick: remove }, '-'),
+          ),
+        ];
+      },
+    'counter',
   );
+
+  root(container, counter(), counter());
 });
