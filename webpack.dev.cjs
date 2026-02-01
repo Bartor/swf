@@ -1,8 +1,12 @@
 const path = require('path');
-const NpmDtsPlugin = require('npm-dts-webpack-plugin');
 
 module.exports = {
   mode: 'development',
+  watch: true,
+  watchOptions: {
+    ignored: /node_modules/,
+  },
+  devtool: 'source-map',
   entry: './src/index.ts',
   module: {
     rules: [
@@ -12,7 +16,9 @@ module.exports = {
         exclude: /node_modules/,
         options: {
           compilerOptions: {
-            declaration: false,
+            declaration: true,
+            outDir: 'dist',
+            sourceMap: true,
           },
         },
       },
@@ -25,18 +31,12 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: 'swf.js',
+    filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
     library: {
       type: 'module',
     },
     globalObject: 'this',
-    clean: true,
+    clean: false,
   },
-  plugins: [
-    new NpmDtsPlugin({
-      output: path.resolve(__dirname, 'dist/swf.d.ts'),
-      logLevel: 'warn',
-    }),
-  ],
 };

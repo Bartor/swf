@@ -1,13 +1,13 @@
 {
   "name": "swf",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "dist/swf.js",
-  "module": "dist/swf.js",
-  "types": "dist/swf.d.ts",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "webpack --mode production",
-    "dev": "webpack --watch --mode development",
+    "dev": "webpack --config webpack.dev.cjs",
+    "build": "webpack --config webpack.prod.cjs",
     "prebuild": "rimraf dist",
     "prepare": "husky",
     "lint": "eslint .",
@@ -16,8 +16,8 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/swf.js",
-      "types": "./dist/swf.d.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "devDependencies": {
