@@ -1,4 +1,3 @@
-import { IS_COMPONENT_FIELD } from '../components';
 import { ExecutionContext, ScheduledEffectCall } from '../state/types';
 import { PickFunctions, PrepareProps } from '../utils/type-utils';
 
@@ -13,10 +12,7 @@ export type Block<T extends HTMLElement = HTMLElement> = (
   props: PrepareProps<T>,
   ...children: Renderable[]
 ) => BlockRenderer<T>;
-export type ComponentRendererFn<TProps = any> = BlockRendererFn<TProps> & {
-  [IS_COMPONENT_FIELD]: true;
-};
-export type ComponentBlock<TProps = any> = (props: TProps) => ComponentRendererFn;
+export type ComponentBlock<TProps = any> = (props: TProps) => BlockRendererFn<TProps>;
 export type TextBlock = (text: string) => BlockRendererFn<Text>;
 
 // Tree

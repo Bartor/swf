@@ -1,14 +1,12 @@
 import {
+  BlockRendererFn,
   ComponentNodeBlock,
-  ComponentRendererFn,
   GenericParentNode,
   LocallyReferenableNodeBlock,
 } from '../blocks';
 import { getEffect, getMemoize, getPersist } from '../state/state';
 import { makeRenderable } from '../utils/rendering-utils';
 import { ComponentFactory, ComponentInjectedPropsFn } from './types';
-
-export const IS_COMPONENT_FIELD = '__isComponent__';
 
 export const component: ComponentFactory = (() => {
   let componentId = 0;
@@ -30,16 +28,6 @@ export const component: ComponentFactory = (() => {
     const componentFn = injectedPropsFn({ persist, memoize, effect });
 
     return function block(...props: TProps) {
-      const getterProxyHandler = {
-        get(_: unknown, prop: unknown) {
-          if (prop === IS_COMPONENT_FIELD) {
-            return true;
-          }
-
-          return undefined;
-        },
-      };
-
       function renderer(parent?: GenericParentNode, idx: number = -1): null {
         let hasToRender = false;
 
@@ -94,7 +82,7 @@ export const component: ComponentFactory = (() => {
         return null;
       }
 
-      return new Proxy(renderer, getterProxyHandler) as ComponentRendererFn<TProps>;
+      return renderer as BlockRendererFn<TProps>;
     };
   };
 })();
