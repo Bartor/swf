@@ -60,8 +60,8 @@ window.addEventListener('load', () => {
     ({ persist, memoize }) =>
       (title, limit) => {
         const [count, updateCount] = persist(1);
-        const add = memoize(() => () => updateCount((count) => count + 1), [updateCount]);
-        const remove = memoize(() => () => updateCount((count) => count - 1), [updateCount]);
+        const add = memoize(() => () => updateCount((count) => count + 1), []);
+        const remove = memoize(() => () => updateCount((count) => count - 1), []);
 
         return [
           div(
