@@ -1,15 +1,20 @@
-import { BlockRenderer, ComponentNodeBlock, Root } from './types';
+import { ScheduledEffectCall } from '../state/types';
+import { BlockRenderer, ComponentNodeBlock, NodeRoot } from './types';
 
 export const root = (container: HTMLElement, ...children: BlockRenderer[]) => {
+  let scheduledEffects: ScheduledEffectCall[] = [];
+
   const updateTree = (node: ComponentNodeBlock) => {
-    if (node) {
-      node.internalStateChanged = true;
-    }
+    node.internalStateChanged = true;
+
     render();
   };
 
-  const rootNode = new Root('root', updateTree, container);
+  const scheduleEffect = (call: ScheduledEffectCall) => {
+    scheduledEffects.push(call);
+  };
 
+  const rootNode = new NodeRoot(updateTree, scheduleEffect, container);
   rootNode.root = rootNode;
 
   const render = () => {
@@ -19,6 +24,9 @@ export const root = (container: HTMLElement, ...children: BlockRenderer[]) => {
         container.appendChild(renderedChild);
       }
     });
+
+    scheduledEffects.forEach((call) => call());
+    scheduledEffects = [];
   };
 
   render();

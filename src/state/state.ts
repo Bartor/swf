@@ -1,14 +1,21 @@
 import { ComponentNodeBlock, LocallyReferenableNodeBlock } from '../blocks';
-import { MemoizeFn, PersistFn, PersistResult, PersistUpdatePayload } from './types';
+import {
+  EffectCleanup,
+  EffectFn,
+  MemoizeFn,
+  PersistFn,
+  PersistResult,
+  PersistUpdatePayload,
+} from './types';
 
 export const getPersist = (local: LocallyReferenableNodeBlock<ComponentNodeBlock>): PersistFn => {
   const getUpdate = () => {
     const node = local.node;
-    const currentValue = node.context.getPersist();
     const currentIdx = node.context.getPersistIdx();
 
     return (payload: PersistUpdatePayload) => {
       let newValue = payload;
+      const [currentValue] = node.context.getPersist(currentIdx);
 
       if (typeof payload === 'function') {
         newValue = payload(currentValue);
@@ -23,11 +30,12 @@ export const getPersist = (local: LocallyReferenableNodeBlock<ComponentNodeBlock
 
   return <T = any>(initialValue: T) => {
     if (!local.node.context.initialized) {
-      local.node.context.registerNewPersist(initialValue);
       local.node.context.nextPersist();
+      const update = getUpdate();
+      local.node.context.registerNewPersist([initialValue, update]);
     }
 
-    const result: PersistResult<T> = [local.node.context.getPersist(), getUpdate()];
+    const result: PersistResult<T> = local.node.context.getPersist();
 
     if (local.node.context.initialized) {
       local.node.context.nextPersist();
@@ -62,5 +70,32 @@ export const getMemoize = (local: LocallyReferenableNodeBlock<ComponentNodeBlock
     }
 
     return result;
+  };
+};
+
+export const getEffect = (local: LocallyReferenableNodeBlock<ComponentNodeBlock>): EffectFn => {
+  return (callback, dependsOn) => {
+    if (!local.node.context.initialized) {
+      const cleanUp = (callback() as EffectCleanup) ?? (() => {});
+
+      local.node.context.registerNewEffect([cleanUp, dependsOn]);
+      local.node.context.nextEffect();
+    } else {
+      const [cleanUp, currentDependsOn] = local.node.context.getEffect();
+
+      if (
+        currentDependsOn.length !== dependsOn.length ||
+        currentDependsOn.some((dep, idx) => dependsOn[idx] !== dep)
+      ) {
+        local.node.root.scheduleEffect(() => {
+          cleanUp();
+          const newCleanup = (callback() as EffectCleanup) ?? (() => {});
+
+          local.node.context.updateEffect([newCleanup, dependsOn]);
+        });
+      }
+
+      local.node.context.nextEffect();
+    }
   };
 };

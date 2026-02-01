@@ -1,5 +1,5 @@
 import { IS_COMPONENT_FIELD } from '../components';
-import { ExecutionContext } from '../state/types';
+import { ExecutionContext, ScheduledEffectCall } from '../state/types';
 import { PickFunctions, PrepareProps } from '../utils/type-utils';
 
 // Blocks
@@ -23,7 +23,7 @@ export type TextBlock = (text: string) => BlockRendererFn<Text>;
 abstract class GenericNodeBlock<T> {
   public parent?: GenericParentNode;
   public idx: number;
-  public root: Root;
+  public root: NodeRoot;
   public renderer: BlockRendererFn<T>;
 
   protected childrenSet: Set<GenericChildNode>;
@@ -65,13 +65,13 @@ abstract class GenericNodeBlock<T> {
   }
 }
 
-export class Root extends GenericNodeBlock<HTMLElement> {
+export class NodeRoot extends GenericNodeBlock<HTMLElement> {
   constructor(
-    name: string,
     public readonly updateTree: (node: ComponentNodeBlock) => void,
+    public readonly scheduleEffect: (call: ScheduledEffectCall) => void,
     public readonly ref?: HTMLElement,
   ) {
-    super(name);
+    super('__root__');
   }
 }
 export class NodeBlock<T extends HTMLElement = HTMLElement> extends GenericNodeBlock<T> {
@@ -152,5 +152,5 @@ export class LocallyReferenableNodeBlock<T extends GenericNodeBlock<any>> {
   }
 }
 
-export type GenericParentNode = Root | NodeBlock | ComponentNodeBlock;
+export type GenericParentNode = NodeRoot | NodeBlock | ComponentNodeBlock;
 export type GenericChildNode = NodeBlock | ComponentNodeBlock | TextNodeBlock;

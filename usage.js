@@ -93,6 +93,35 @@ window.addEventListener('load', () => {
     '.',
   );
 
+  const clock = component(({ effect, persist, memoize }) => () => {
+    const [stop, updateStop] = persist(false);
+    const [seconds, updateSeconds] = persist(0);
+    const [tempo, updateTempo] = persist(5);
+
+    effect(() => {
+      if (stop) {
+        return;
+      }
+
+      const interval = setInterval(() => updateSeconds((current) => current + 1), [1000 / tempo]);
+
+      return () => clearInterval(interval);
+    }, [tempo, stop]);
+
+    return [
+      h3({}, 'Effects'),
+      div(
+        { style: 'display: flex; gap: 8px' },
+        button({ onclick: () => updateStop((s) => !s) }, stop ? 'Start' : 'Stop'),
+        button({ onclick: () => updateTempo((t) => t + 0.5) }, 'Up tempo'),
+        button({ onclick: () => updateTempo((t) => Math.max(t - 0.5, 0.5)) }, 'Down tempo'),
+      ),
+      span({}, 'Tempo: ', tempo, '/s'),
+      br(),
+      span({}, 'Elapsed: ', seconds),
+    ];
+  });
+
   root(
     container,
     div(
@@ -104,6 +133,7 @@ window.addEventListener('load', () => {
         counter('First counter', 10),
         counter('Second counter', 5),
       ),
+      clock(),
     ),
   );
 });

@@ -11,7 +11,7 @@ HTML-first, React-sque, two-paradigm simple and lightweight framework for web de
 
 - support `key` prop
 - update `style` per property
-- add tests
+- update test coverage
 
 ## Build
 

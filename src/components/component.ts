@@ -4,7 +4,7 @@ import {
   GenericParentNode,
   LocallyReferenableNodeBlock,
 } from '../blocks';
-import { getMemoize, getPersist } from '../state/state';
+import { getEffect, getMemoize, getPersist } from '../state/state';
 import { makeRenderable } from '../utils/rendering-utils';
 import { ComponentFactory, ComponentInjectedPropsFn } from './types';
 
@@ -26,7 +26,8 @@ export const component: ComponentFactory = (() => {
 
     const persist = getPersist(local);
     const memoize = getMemoize(local);
-    const componentFn = injectedPropsFn({ persist, memoize });
+    const effect = getEffect(local);
+    const componentFn = injectedPropsFn({ persist, memoize, effect });
 
     return function block(...props: TProps) {
       const getterProxyHandler = {
