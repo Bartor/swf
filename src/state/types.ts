@@ -38,7 +38,7 @@ export class ExecutionContext {
   }
 
   public updateMemoize(newValue: any) {
-    this.memoized[this.currentMemoizeIdx][0] = newValue;
+    this.memoized[this.currentMemoizeIdx] = newValue;
   }
 
   public getPersist() {

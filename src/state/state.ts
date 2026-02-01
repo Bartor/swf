@@ -52,10 +52,7 @@ export const getMemoize = (local: LocallyReferenableNodeBlock<ComponentNodeBlock
       ) {
         const value = factory();
         result = value;
-
-        if (value !== currentValue) {
-          local.node.context.updateMemoize([value, dependsOn]);
-        }
+        local.node.context.updateMemoize([value, dependsOn]);
       }
 
       local.node.context.nextMemoize();

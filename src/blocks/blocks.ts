@@ -78,9 +78,15 @@ const makeBlock = <T extends HTMLElement = HTMLElement>(
         // ...if yes -> switch to it
         local.node = existingNode as NodeBlock<T>;
       } else {
-        // ...if no -> create a new element...
+        // if no, make sure to remove the wrong node
+        if (existingNode !== undefined) {
+          local.node.parent.removeChild(existingNode);
+        }
+
+        // ...create a new element...
         local.node.ref = document.createElement(tagName) as T;
         local.node.parent = parent;
+        local.node.root = parent?.root;
         local.node.parent?.addChild(local.node);
         local.node.idx = idx;
         // ...which needs to be rendered
@@ -95,14 +101,15 @@ const makeBlock = <T extends HTMLElement = HTMLElement>(
       if (havePropsChanged) {
         Object.assign(local.node.ref, props);
         local.node.currentProps = props;
-        hasToRender = true;
       }
 
+      local.node.trimChildren(children.length);
       const preprocessedChildren = makeRenderable(children);
-      const renderedChildren = preprocessedChildren.map((child, idx) => child(local.node, idx));
-      renderedChildren.forEach((child) => {
-        if (child !== null) {
-          local.node.ref.appendChild(child);
+      preprocessedChildren.forEach((childRenderer, childIdx) => {
+        const renderedElement = childRenderer(local.node, childIdx);
+
+        if (renderedElement) {
+          local.node.ref.appendChild(renderedElement);
         }
       });
 
@@ -119,9 +126,16 @@ const makeBlock = <T extends HTMLElement = HTMLElement>(
   };
 };
 
-export const div: Block<HTMLDivElement> = makeBlock('div');
-export const span: Block<HTMLSpanElement> = makeBlock('span');
-export const p: Block<HTMLParagraphElement> = makeBlock('p');
-export const button: Block<HTMLButtonElement> = makeBlock('button');
-export const label: Block<HTMLLabelElement> = makeBlock('label');
 export const br: Block<HTMLLabelElement> = makeBlock('br');
+export const button: Block<HTMLButtonElement> = makeBlock('button');
+export const div: Block<HTMLDivElement> = makeBlock('div');
+export const h1: Block<HTMLElement> = makeBlock('h1');
+export const h2: Block<HTMLElement> = makeBlock('h2');
+export const h3: Block<HTMLElement> = makeBlock('h3');
+export const h4: Block<HTMLElement> = makeBlock('h4');
+export const h5: Block<HTMLElement> = makeBlock('h5');
+export const h6: Block<HTMLElement> = makeBlock('h6');
+export const label: Block<HTMLLabelElement> = makeBlock('label');
+export const p: Block<HTMLParagraphElement> = makeBlock('p');
+export const span: Block<HTMLSpanElement> = makeBlock('span');
+export const strong: Block<HTMLElement> = makeBlock('strong');

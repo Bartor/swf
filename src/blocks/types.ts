@@ -1,3 +1,4 @@
+import { IS_COMPONENT_FIELD } from '../components';
 import { ExecutionContext } from '../state/types';
 import { PickFunctions, PrepareProps } from '../utils/type-utils';
 
@@ -12,7 +13,10 @@ export type Block<T extends HTMLElement = HTMLElement> = (
   props: PrepareProps<T>,
   ...children: Renderable[]
 ) => BlockRenderer<T>;
-export type ComponentBlock<TProps = any> = (props: TProps) => BlockRendererFn<TProps>;
+export type ComponentRendererFn<TProps = any> = BlockRendererFn<TProps> & {
+  [IS_COMPONENT_FIELD]: true;
+};
+export type ComponentBlock<TProps = any> = (props: TProps) => ComponentRendererFn;
 export type TextBlock = (text: string) => BlockRendererFn<Text>;
 
 // Tree
@@ -22,8 +26,8 @@ abstract class GenericNodeBlock<T> {
   public root: Root;
   public renderer: BlockRendererFn<T>;
 
-  childrenSet: Set<GenericChildNode>;
-  children: GenericChildNode[];
+  protected childrenSet: Set<GenericChildNode>;
+  protected children: GenericChildNode[];
 
   constructor(public readonly name: string) {
     this.childrenSet = new Set();
@@ -36,6 +40,14 @@ abstract class GenericNodeBlock<T> {
 
   public hasChild(child: GenericChildNode) {
     return this.childrenSet.has(child);
+  }
+
+  protected resolveChildElements(child: GenericChildNode): (HTMLElement | Text)[] {
+    if (child instanceof ComponentNodeBlock) {
+      return child.children.flatMap((c) => this.resolveChildElements(c));
+    }
+
+    return [child.ref as HTMLElement];
   }
 
   public removeChild(child: GenericChildNode) {
@@ -64,12 +76,29 @@ export class Root extends GenericNodeBlock<HTMLElement> {
 }
 export class NodeBlock<T extends HTMLElement = HTMLElement> extends GenericNodeBlock<T> {
   public ref?: T;
+  public currentProps: PrepareProps<T>;
 
   constructor(name: string) {
     super(name);
   }
 
-  public currentProps: PrepareProps<T>;
+  public removeChild(child: GenericChildNode): void {
+    super.removeChild(child);
+    this.resolveChildElements(child).forEach((c) => this.ref.removeChild(c));
+  }
+
+  public trimChildren(newChildrenLength: number) {
+    const startIdx = newChildrenLength - this.children.length;
+
+    if (startIdx >= 0) {
+      return;
+    }
+
+    const childrenToRemove = this.children.splice(startIdx);
+    childrenToRemove.forEach((child) => {
+      this.removeChild(child);
+    });
+  }
 }
 export class ComponentNodeBlock<TProps = any> extends GenericNodeBlock<TProps> {
   public readonly context: ExecutionContext;
@@ -80,6 +109,24 @@ export class ComponentNodeBlock<TProps = any> extends GenericNodeBlock<TProps> {
   constructor(name: string) {
     super(name);
     this.context = new ExecutionContext();
+  }
+
+  public removeChild(child: GenericChildNode): void {
+    super.removeChild(child);
+    this.resolveChildElements(child).forEach((c) => this.ref.removeChild(c));
+  }
+
+  public trimChildren(newChildrenLength: number) {
+    const startIdx = newChildrenLength - this.children.length;
+
+    if (startIdx >= 0) {
+      return;
+    }
+
+    const childrenToRemove = this.children.splice(startIdx);
+    childrenToRemove.forEach((child) => {
+      this.removeChild(child);
+    });
   }
 }
 export class TextNodeBlock extends GenericNodeBlock<Text> {

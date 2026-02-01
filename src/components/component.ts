@@ -1,12 +1,14 @@
 import {
-  BlockRendererFn,
   ComponentNodeBlock,
+  ComponentRendererFn,
   GenericParentNode,
   LocallyReferenableNodeBlock,
 } from '../blocks';
 import { getMemoize, getPersist } from '../state/state';
 import { makeRenderable } from '../utils/rendering-utils';
 import { ComponentFactory, ComponentInjectedPropsFn } from './types';
+
+export const IS_COMPONENT_FIELD = '__isComponent__';
 
 export const component: ComponentFactory = (() => {
   let componentId = 0;
@@ -27,6 +29,16 @@ export const component: ComponentFactory = (() => {
     const componentFn = injectedPropsFn({ persist, memoize });
 
     return function block(...props: TProps) {
+      const getterProxyHandler = {
+        get(_: unknown, prop: unknown) {
+          if (prop === IS_COMPONENT_FIELD) {
+            return true;
+          }
+
+          return undefined;
+        },
+      };
+
       function renderer(parent?: GenericParentNode, idx: number = -1): null {
         let hasToRender = false;
 
@@ -36,7 +48,12 @@ export const component: ComponentFactory = (() => {
           // ...if yes -> switch to it
           local.node = existingNode as ComponentNodeBlock<TProps>;
         } else {
-          // ...if no -> recreate local reference as unique block usage
+          // if no, make sure to remove the wrong node...
+          if (existingNode !== undefined) {
+            local.node.parent.removeChild(existingNode);
+          }
+
+          // ...recreate local reference as unique block usage
           local.node = new ComponentNodeBlock(name);
           local.node.parent = parent;
           local.node.root = parent?.root;
@@ -61,13 +78,14 @@ export const component: ComponentFactory = (() => {
 
         if (havePropsChanged || hasInternalStateChanged || hasToRender) {
           const children = componentFn(...local.node.currentProps);
+          local.node.trimChildren(children.length);
           local.node.context.initialize();
           const preprocessedChildren = makeRenderable(children);
-          const renderedChildren = preprocessedChildren.map((child, idx) => child(local.node, idx));
+          preprocessedChildren.forEach((childRenderer, childIdx) => {
+            const renderedElement = childRenderer(local.node, childIdx);
 
-          renderedChildren.forEach((child) => {
-            if (child !== null) {
-              local.node.ref.appendChild(child);
+            if (renderedElement !== null) {
+              local.node.ref?.appendChild(renderedElement);
             }
           });
         }
@@ -75,7 +93,7 @@ export const component: ComponentFactory = (() => {
         return null;
       }
 
-      return renderer as BlockRendererFn<TProps>;
+      return new Proxy(renderer, getterProxyHandler) as ComponentRendererFn<TProps>;
     };
   };
 })();
