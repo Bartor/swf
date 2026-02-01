@@ -6,7 +6,7 @@
   "types": "dist/swf.d.ts",
   "type": "module",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode production",
     "dev": "webpack --watch --mode development",
     "prebuild": "rimraf dist",
     "prepare": "husky",

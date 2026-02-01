@@ -2,7 +2,7 @@ const path = require('path');
 const NpmDtsPlugin = require('npm-dts-webpack-plugin');
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   entry: './src/index.ts',
   module: {
     rules: [

@@ -1,23 +1,40 @@
-import { Block, Node } from './types';
+import { Block, ContainingBlock, Node, RenderBlock } from './types';
 
-export const text: Block<Text> = (text: string) => {
+export const text: Block<Text> = function (text: string) {
   const el = document.createTextNode(text);
 
-  return () => () => el;
+  return function () {
+    return () => el;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
 };
 
-const makeBlock =
-  <T extends HTMLElement = HTMLElement>(tagName: keyof HTMLElementTagNameMap): Block<T> =>
-  (props) => {
+const makeBlock = <T extends HTMLElement = HTMLElement>(
+  tagName: keyof HTMLElementTagNameMap,
+): Block<T> =>
+  function (props) {
     const el = document.createElement(tagName);
     Object.assign(el, props);
 
-    return (...children) => {
-      return (parent) => {
+    // proxy handler which allows to call any el method on returned blockFn
+    const handler = {
+      get: function (target: unknown, prop: unknown) {
+        const value = el[prop as keyof typeof el];
+        if (value instanceof Function) {
+          return function (...args: unknown[]) {
+            return value.apply(el, args);
+          };
+        }
+
+        return undefined;
+      },
+    };
+
+    function blockFn(...children: RenderBlock[]) {
+      return function (parent) {
         const elNode: Node<T> = {
           parent,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ref: el as any,
+          ref: el as T,
           currentProps: props,
           children: [],
         };
@@ -26,10 +43,11 @@ const makeBlock =
         const childEls = children.map((child) => child(elNode));
         childEls.forEach((childEl) => el.appendChild(childEl));
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return el as any;
-      };
-    };
+        return el;
+      } as RenderBlock<T>;
+    }
+
+    return new Proxy(blockFn, handler) as ContainingBlock<T>;
   };
 
 export const div: Block<HTMLDivElement> = makeBlock('div');

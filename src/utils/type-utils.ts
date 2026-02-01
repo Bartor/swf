@@ -7,4 +7,11 @@ type WritableKeys<T> = {
 
 type PickWritable<T> = Pick<T, WritableKeys<T>>;
 
+type FunctionKeys<T> = {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  [K in keyof T]: T[K] extends Function ? K : never;
+}[keyof T];
+
+export type PickFunctions<T> = Pick<T, FunctionKeys<T>>;
+
 export type PrepareProps<T> = Partial<Omit<PickWritable<T>, 'style'> & { style: string }>;
