@@ -1,4 +1,5 @@
 import { makeRenderable } from '../utils/rendering-utils';
+import { PrepareProps } from '../utils/type-utils';
 import {
   Block,
   NodeBlock,
@@ -98,7 +99,15 @@ const makeBlock = <T extends HTMLElement = HTMLElement>(
           local.node.currentProps?.[prop as keyof typeof local.node.currentProps] !== value,
       );
 
-      if (havePropsChanged) {
+      if (local.node.currentProps) {
+        const keysToRemove = Object.keys(local.node.currentProps).filter((key) => !(key in props));
+
+        keysToRemove.forEach((key) => {
+          local.node.ref[key as keyof PrepareProps<T>] = null;
+        });
+      }
+
+      if (havePropsChanged || !local.node.currentProps) {
         Object.assign(local.node.ref, props);
         local.node.currentProps = props;
       }

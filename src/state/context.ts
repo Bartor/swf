@@ -46,6 +46,11 @@ export class ExecutionContext {
     this.effects[this.currentEffectIdx] = newEffect;
   }
 
+  public releaseEffects() {
+    this.effects.forEach(([cleanup]) => cleanup());
+    this.effects.splice(0);
+  }
+
   public getPersist(idx?: number) {
     return this.persists[idx ?? this.currentPersistIdx];
   }

@@ -48,6 +48,10 @@ abstract class GenericNodeBlock<T> {
   }
 
   public removeChild(child: GenericChildNode) {
+    if (child instanceof ComponentNodeBlock) {
+      child.context.releaseEffects();
+    }
+
     this.childrenSet.delete(child);
     this.children.splice(child.idx, 1);
   }
@@ -91,7 +95,7 @@ export class NodeBlock<T extends HTMLElement = HTMLElement> extends GenericNodeB
       return;
     }
 
-    const childrenToRemove = this.children.splice(startIdx);
+    const childrenToRemove = this.children.slice(startIdx);
     childrenToRemove.forEach((child) => {
       this.removeChild(child);
     });
@@ -120,7 +124,7 @@ export class ComponentNodeBlock<TProps = any> extends GenericNodeBlock<TProps> {
       return;
     }
 
-    const childrenToRemove = this.children.splice(startIdx);
+    const childrenToRemove = this.children.slice(startIdx);
     childrenToRemove.forEach((child) => {
       this.removeChild(child);
     });

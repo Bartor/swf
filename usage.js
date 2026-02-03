@@ -102,7 +102,7 @@ window.addEventListener('load', () => {
             button({ onclick: add }, '+'),
           ),
           'Count: ',
-          span({ style: state.count > limit || state.count < 0 ? 'color: red' : '' }, count),
+          span({ style: state.count > limit || state.count < 0 ? 'color: red' : null }, count),
           br(),
           span({}, repeater(state.count, limit)),
         ),
